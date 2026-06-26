@@ -6,11 +6,15 @@
   <title>Image Gallery</title>
   <style>
     :root {
-      --bg: #f5f5f5;
-      --page-bg: #ffffff;
-      --text: #1a1a1a;
-      --muted: #666;
-      --accent: #2563eb;
+      --bg: #0b0d12;
+      --surface: #141820;
+      --surface-2: #1c2230;
+      --text: #f4f6fb;
+      --muted: #94a3b8;
+      --accent: #60a5fa;
+      --accent-glow: rgba(96, 165, 250, 0.35);
+      --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+      --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
     }
 
     * {
@@ -19,315 +23,835 @@
       padding: 0;
     }
 
+    html {
+      scroll-behavior: smooth;
+    }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       background: var(--bg);
       color: var(--text);
       line-height: 1.5;
+      overflow-x: hidden;
     }
 
-    /* Screen toolbar */
-    .toolbar {
-      position: sticky;
+    /* Ambient animated background */
+    .bg-glow {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .bg-glow span {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.45;
+      animation: drift 18s var(--ease-out) infinite alternate;
+    }
+
+    .bg-glow span:nth-child(1) {
+      width: 42vw;
+      height: 42vw;
+      top: -10%;
+      left: -8%;
+      background: #1d4ed8;
+      animation-delay: 0s;
+    }
+
+    .bg-glow span:nth-child(2) {
+      width: 36vw;
+      height: 36vw;
+      top: 35%;
+      right: -12%;
+      background: #7c3aed;
+      animation-delay: -6s;
+    }
+
+    .bg-glow span:nth-child(3) {
+      width: 30vw;
+      height: 30vw;
+      bottom: -8%;
+      left: 25%;
+      background: #0ea5e9;
+      animation-delay: -12s;
+    }
+
+    @keyframes drift {
+      from { transform: translate(0, 0) scale(1); }
+      to   { transform: translate(4%, 6%) scale(1.08); }
+    }
+
+    /* Scroll progress */
+    .progress-bar {
+      position: fixed;
       top: 0;
-      z-index: 100;
+      left: 0;
+      z-index: 200;
+      height: 3px;
+      width: 0%;
+      background: linear-gradient(90deg, #3b82f6, #a78bfa, #38bdf8);
+      box-shadow: 0 0 12px var(--accent-glow);
+      transition: width 0.1s linear;
+    }
+
+    /* Toolbar */
+    .toolbar {
+      position: fixed;
+      top: 1rem;
+      left: 50%;
+      z-index: 150;
+      transform: translateX(-50%) translateY(-120%);
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 1rem;
-      padding: 0.875rem 1.5rem;
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(8px);
-      border-bottom: 1px solid #e5e5e5;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+      gap: 0.75rem;
+      padding: 0.5rem 0.5rem 0.5rem 1rem;
+      background: rgba(20, 24, 32, 0.72);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 999px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+      animation: toolbar-in 0.8s var(--ease-out) 0.3s forwards;
     }
 
-    .toolbar h1 {
-      font-size: 1.125rem;
+    @keyframes toolbar-in {
+      to { transform: translateX(-50%) translateY(0); }
+    }
+
+    .toolbar.visible {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .toolbar-title {
+      font-size: 0.8125rem;
       font-weight: 600;
-      letter-spacing: -0.02em;
+      color: var(--muted);
+      white-space: nowrap;
     }
 
-    .toolbar-actions {
-      display: flex;
-      gap: 0.5rem;
+    .toolbar-counter {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--accent);
+      min-width: 3.5rem;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
     }
 
     .btn {
       appearance: none;
       border: none;
-      border-radius: 8px;
-      padding: 0.5rem 1rem;
-      font-size: 0.875rem;
-      font-weight: 500;
+      border-radius: 999px;
+      padding: 0.45rem 0.9rem;
+      font-size: 0.8125rem;
+      font-weight: 600;
       cursor: pointer;
-      transition: background 0.15s, transform 0.1s;
+      transition: transform 0.2s var(--ease-spring), background 0.2s, box-shadow 0.2s;
     }
 
-    .btn:active {
-      transform: scale(0.98);
-    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn:active { transform: scale(0.96); }
 
     .btn-primary {
-      background: var(--accent);
+      background: linear-gradient(135deg, #3b82f6, #6366f1);
       color: #fff;
+      box-shadow: 0 4px 16px rgba(59, 130, 246, 0.35);
     }
 
     .btn-primary:hover {
-      background: #1d4ed8;
+      box-shadow: 0 6px 24px rgba(59, 130, 246, 0.5);
     }
 
-    .btn-secondary {
-      background: #e5e7eb;
+    .btn-ghost {
+      background: rgba(255, 255, 255, 0.06);
       color: var(--text);
     }
 
-    .btn-secondary:hover {
-      background: #d1d5db;
+    .btn-ghost:hover {
+      background: rgba(255, 255, 255, 0.12);
     }
 
-    /* Cover page */
-    .cover {
-      max-width: 900px;
-      margin: 3rem auto;
-      padding: 4rem 2rem;
+    /* Hero */
+    .hero {
+      min-height: 72vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
       text-align: center;
-      background: var(--page-bg);
-      border-radius: 12px;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+      padding: 6rem 1.5rem 3rem;
     }
 
-    .cover h2 {
-      font-size: 2rem;
-      font-weight: 700;
-      letter-spacing: -0.03em;
-      margin-bottom: 0.5rem;
-    }
-
-    .cover p {
-      color: var(--muted);
-      font-size: 1rem;
-    }
-
-    .cover .count {
-      margin-top: 1.5rem;
-      display: inline-block;
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
       padding: 0.35rem 0.85rem;
-      background: #eff6ff;
-      color: var(--accent);
+      margin-bottom: 1.25rem;
       border-radius: 999px;
-      font-size: 0.8125rem;
-      font-weight: 600;
+      background: rgba(96, 165, 250, 0.12);
+      border: 1px solid rgba(96, 165, 250, 0.25);
+      color: var(--accent);
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      opacity: 0;
+      animation: fade-up 0.9s var(--ease-out) 0.1s forwards;
     }
 
-    /* Gallery pages */
+    .hero-badge::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.5; transform: scale(0.85); }
+    }
+
+    .hero h1 {
+      font-size: clamp(2.25rem, 6vw, 4rem);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1.05;
+      background: linear-gradient(135deg, #fff 30%, #94a3b8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      opacity: 0;
+      animation: fade-up 0.9s var(--ease-out) 0.25s forwards;
+    }
+
+    .hero p {
+      margin-top: 1rem;
+      max-width: 28rem;
+      color: var(--muted);
+      font-size: 1.05rem;
+      opacity: 0;
+      animation: fade-up 0.9s var(--ease-out) 0.4s forwards;
+    }
+
+    .scroll-hint {
+      margin-top: 3rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--muted);
+      font-size: 0.75rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      opacity: 0;
+      animation: fade-up 0.9s var(--ease-out) 0.6s forwards;
+    }
+
+    .scroll-hint .chevron {
+      width: 20px;
+      height: 20px;
+      border-right: 2px solid var(--muted);
+      border-bottom: 2px solid var(--muted);
+      transform: rotate(45deg);
+      animation: bounce 2s ease-in-out infinite;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: rotate(45deg) translateY(0); }
+      50%       { transform: rotate(45deg) translateY(6px); }
+    }
+
+    @keyframes fade-up {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Gallery */
     .gallery {
-      max-width: 900px;
-      margin: 0 auto 3rem;
-      padding: 0 1rem;
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 1.25rem 6rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2.5rem;
     }
 
     .page {
-      background: var(--page-bg);
-      border-radius: 12px;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-      margin-bottom: 2rem;
+      position: relative;
+      border-radius: 20px;
       overflow: hidden;
+      background: var(--surface);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+      opacity: 0;
+      transform: translateY(48px) scale(0.97);
+      transition:
+        opacity 0.7s var(--ease-out),
+        transform 0.7s var(--ease-out),
+        box-shadow 0.4s var(--ease-out),
+        border-color 0.4s;
     }
 
-    .page-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0.75rem 1.25rem;
-      border-bottom: 1px solid #f0f0f0;
-      background: #fafafa;
+    .page.in-view {
+      opacity: 1;
+      transform: translateY(0) scale(1);
     }
 
-    .page-number {
-      font-size: 0.8125rem;
-      font-weight: 600;
+    .page:hover {
+      border-color: rgba(96, 165, 250, 0.25);
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(96, 165, 250, 0.1);
+    }
+
+    .page-index {
+      position: absolute;
+      top: 1rem;
+      left: 1rem;
+      z-index: 2;
+      padding: 0.3rem 0.7rem;
+      border-radius: 999px;
+      background: rgba(11, 13, 18, 0.65);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
       color: var(--muted);
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
+      opacity: 0;
+      transform: translateY(-8px);
+      transition: opacity 0.4s var(--ease-out), transform 0.4s var(--ease-out);
     }
 
-    .page img {
+    .page.in-view .page-index {
+      opacity: 1;
+      transform: translateY(0);
+      transition-delay: 0.2s;
+    }
+
+    .img-wrap {
+      position: relative;
+      overflow: hidden;
+      cursor: zoom-in;
+      background: var(--surface-2);
+    }
+
+    .img-wrap::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      background: linear-gradient(
+        110deg,
+        transparent 30%,
+        rgba(255, 255, 255, 0.06) 50%,
+        transparent 70%
+      );
+      transform: translateX(-120%);
+      transition: transform 0s;
+    }
+
+    .page.in-view .img-wrap::before {
+      animation: shimmer 1.2s var(--ease-out) 0.15s;
+    }
+
+    @keyframes shimmer {
+      to { transform: translateX(120%); }
+    }
+
+    .img-wrap img {
       display: block;
       width: 100%;
       height: auto;
       max-height: 85vh;
       object-fit: contain;
-      background: #fafafa;
+      transform: scale(1);
+      transition: transform 0.6s var(--ease-out), filter 0.4s;
     }
 
-    /* Print / PDF styles */
+    .page:hover .img-wrap img {
+      transform: scale(1.03);
+    }
+
+    .img-wrap .zoom-icon {
+      position: absolute;
+      bottom: 1rem;
+      right: 1rem;
+      z-index: 2;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: rgba(11, 13, 18, 0.7);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #fff;
+      opacity: 0;
+      transform: scale(0.8);
+      transition: opacity 0.3s, transform 0.3s var(--ease-spring);
+    }
+
+    .page:hover .zoom-icon {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    /* Lightbox */
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      z-index: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      background: rgba(5, 7, 12, 0.92);
+      backdrop-filter: blur(12px);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.35s, visibility 0.35s;
+    }
+
+    .lightbox.open {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .lightbox img {
+      max-width: min(96vw, 1400px);
+      max-height: 90vh;
+      object-fit: contain;
+      border-radius: 12px;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
+      transform: scale(0.9);
+      opacity: 0;
+      transition: transform 0.45s var(--ease-spring), opacity 0.35s;
+    }
+
+    .lightbox.open img {
+      transform: scale(1);
+      opacity: 1;
+    }
+
+    .lightbox-close,
+    .lightbox-nav {
+      position: absolute;
+      appearance: none;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(20, 24, 32, 0.8);
+      backdrop-filter: blur(8px);
+      color: #fff;
+      border-radius: 50%;
+      width: 44px;
+      height: 44px;
+      font-size: 1.25rem;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.2s var(--ease-spring);
+    }
+
+    .lightbox-close:hover,
+    .lightbox-nav:hover {
+      background: rgba(255, 255, 255, 0.12);
+      transform: scale(1.08);
+    }
+
+    .lightbox-close { top: 1.5rem; right: 1.5rem; }
+    .lightbox-prev { left: 1.5rem; top: 50%; transform: translateY(-50%); }
+    .lightbox-next { right: 1.5rem; top: 50%; transform: translateY(-50%); }
+    .lightbox-prev:hover { transform: translateY(-50%) scale(1.08); }
+    .lightbox-next:hover { transform: translateY(-50%) scale(1.08); }
+
+    .lightbox-label {
+      position: absolute;
+      bottom: 1.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 0.4rem 1rem;
+      border-radius: 999px;
+      background: rgba(20, 24, 32, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      font-size: 0.8125rem;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+      .page { opacity: 1; transform: none; }
+    }
+
+    /* Print */
     @media print {
-      body {
-        background: #fff;
-      }
+      .bg-glow, .progress-bar, .toolbar, .hero, .lightbox,
+      .page-index, .zoom-icon, .no-print { display: none !important; }
 
-      .toolbar,
-      .no-print {
-        display: none !important;
-      }
-
-      .cover {
-        margin: 0;
-        padding: 0;
-        box-shadow: none;
-        border-radius: 0;
-        page-break-after: always;
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-      }
+      body { background: #fff; color: #000; }
 
       .gallery {
         max-width: none;
-        margin: 0;
         padding: 0;
+        gap: 0;
       }
 
       .page {
-        margin: 0;
+        opacity: 1 !important;
+        transform: none !important;
+        border: none;
         border-radius: 0;
         box-shadow: none;
         page-break-after: always;
         page-break-inside: avoid;
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
+        margin: 0;
       }
 
-      .page-header {
-        flex-shrink: 0;
-      }
-
-      .page img {
-        flex: 1;
+      .img-wrap img {
         max-height: none;
-        object-fit: contain;
+        transform: none !important;
       }
 
-      @page {
-        size: A4 portrait;
-        margin: 12mm;
-      }
+      @page { size: A4 portrait; margin: 12mm; }
     }
   </style>
 </head>
 <body>
 
+  <div class="bg-glow" aria-hidden="true">
+    <span></span><span></span><span></span>
+  </div>
 
-  <main class="gallery">
-    <section class="page">
-      
-      <img src="1.jpg" alt="Image 1" loading="lazy">
+  <div class="progress-bar" id="progressBar"></div>
+
+  <nav class="toolbar no-print" aria-label="Gallery controls">
+    <span class="toolbar-title">Gallery</span>
+    <span class="toolbar-counter" id="slideCounter">01 / 26</span>
+    <button class="btn btn-ghost" id="topBtn" type="button">Top</button>
+    <button class="btn btn-primary" id="printBtn" type="button">Save PDF</button>
+  </nav>
+
+  <header class="hero no-print">
+    <div class="hero-badge">Portfolio</div>
+    <h1>Image Gallery</h1>
+    <p>Scroll through the collection — click any image to view fullscreen.</p>
+    <div class="scroll-hint">
+      <span>Scroll to explore</span>
+      <div class="chevron"></div>
+    </div>
+  </header>
+
+  <main class="gallery" id="gallery">
+    <section class="page" data-index="1">
+      <span class="page-index">01</span>
+      <div class="img-wrap" tabindex="0" role="button" aria-label="View image 1 fullscreen">
+        <img src="1.jpg" alt="Image 1" loading="lazy">
+        <span class="zoom-icon" aria-hidden="true">⤢</span>
+      </div>
     </section>
-    <section class="page">
-      
-      <img src="2.jpg" alt="Image 2" loading="lazy">
+    <section class="page" data-index="2">
+      <span class="page-index">02</span>
+      <div class="img-wrap" tabindex="0" role="button" aria-label="View image 2 fullscreen">
+        <img src="2.jpg" alt="Image 2" loading="lazy">
+        <span class="zoom-icon" aria-hidden="true">⤢</span>
+      </div>
     </section>
-    <section class="page">
-      <!-- <div class="page-header"><span class="page-number">Image 3</span></div> -->
-      <img src="3.jpg" alt="Image 3" loading="lazy">
+    <section class="page" data-index="3">
+      <span class="page-index">03</span>
+      <div class="img-wrap" tabindex="0" role="button" aria-label="View image 3 fullscreen">
+        <img src="3.jpg" alt="Image 3" loading="lazy">
+        <span class="zoom-icon" aria-hidden="true">⤢</span>
+      </div>
     </section>
-    <section class="page">
-      <!-- <div class="page-header"><span class="page-number">Image 4</span></div> -->
-      <img src="4.jpg" alt="Image 4" loading="lazy">
+    <section class="page" data-index="4">
+      <span class="page-index">04</span>
+      <div class="img-wrap" tabindex="0" role="button" aria-label="View image 4 fullscreen">
+        <img src="4.jpg" alt="Image 4" loading="lazy">
+        <span class="zoom-icon" aria-hidden="true">⤢</span>
+      </div>
     </section>
-    <section class="page">
-      <!-- <div class="page-header"><span class="page-number">Image 5</span></div> -->
-      <img src="5.jpg" alt="Image 5" loading="lazy">
+    <section class="page" data-index="5">
+      <span class="page-index">05</span>
+      <div class="img-wrap" tabindex="0" role="button" aria-label="View image 5 fullscreen">
+        <img src="5.jpg" alt="Image 5" loading="lazy">
+        <span class="zoom-icon" aria-hidden="true">⤢</span>
+      </div>
     </section>
-    <section class="page">
-      <!-- <div class="page-header"><span class="page-number">Image 6</span></div> -->
-      <img src="6.jpg" alt="Image 6" loading="lazy">
+    <section class="page" data-index="6">
+      <span class="page-index">06</span>
+      <div class="img-wrap" tabindex="0" role="button" aria-label="View image 6 fullscreen">
+        <img src="6.jpg" alt="Image 6" loading="lazy">
+        <span class="zoom-icon" aria-hidden="true">⤢</span>
+      </div>
     </section>
-    <section class="page">
-      <!-- <div class="page-header"><span class="page-number">Image 7</span></div> -->
-      <img src="7.jpg" alt="Image 7" loading="lazy">
+    <section class="page" data-index="7">
+      <span class="page-index">07</span>
+      <div class="img-wrap" tabindex="0" role="button" aria-label="View image 7 fullscreen">
+        <img src="7.jpg" alt="Image 7" loading="lazy">
+        <span class="zoom-icon" aria-hidden="true">⤢</span>
+      </div>
     </section>
-    <section class="page">
-      <!-- <div class="page-header"><span class="page-number">Image 8</span></div> -->
-      <img src="8.jpg" alt="Image 8" loading="lazy">
+    <section class="page" data-index="8">
+      <span class="page-index">08</span>
+      <div class="img-wrap" tabindex="0" role="button" aria-label="View image 8 fullscreen">
+        <img src="8.jpg" alt="Image 8" loading="lazy">
+        <span class="zoom-icon" aria-hidden="true">⤢</span>
+      </div>
     </section>
-    <section class="page">
-      <!-- <div class="page-header"><span class="page-number">Image 9</span></div> -->
-      <img src="9.jpg" alt="Image 9" loading="lazy">
+    <section class="page" data-index="9">
+      <span class="page-index">09</span>
+      <div class="img-wrap" tabindex="0" role="button" aria-label="View image 9 fullscreen">
+        <img src="9.jpg" alt="Image 9" loading="lazy">
+        <span class="zoom-icon" aria-hidden="true">⤢</span>
+      </div>
     </section>
-    <section class="page">
-      <!-- <div class="page-header"><span class="page-number">Image 10</span></div> -->
-      <img src="10.jpg" alt="Image 10" loading="lazy">
+    <section class="page" data-index="10">
+      <span class="page-index">10</span>
+      <div class="img-wrap" tabindex="0" role="button" aria-label="View image 10 fullscreen">
+        <img src="10.jpg" alt="Image 10" loading="lazy">
+        <span class="zoom-icon" aria-hidden="true">⤢</span>
+      </div>
     </section>
-    <section class="page">
-      <!-- <div class="page-header"><span class="page-number">Image 11</span></div> -->
-      <img src="11.jpg" alt="Image 11" loading="lazy">
+    <section class="page" data-index="11">
+      <span class="page-index">11</span>
+      <div class="img-wrap" tabindex="0" role="button" aria-label="View image 11 fullscreen">
+        <img src="11.jpg" alt="Image 11" loading="lazy">
+        <span class="zoom-icon" aria-hidden="true">⤢</span>
+      </div>
     </section>
-    <section class="page">
-      <!-- <div class="page-header"><span class="page-number">Image 12</span></div> -->
-      <img src="12.jpg" alt="Image 12" loading="lazy">
+    <section class="page" data-index="12">
+      <span class="page-index">12</span>
+      <div class="img-wrap" tabindex="0" role="button" aria-label="View image 12 fullscreen">
+        <img src="12.jpg" alt="Image 12" loading="lazy">
+        <span class="zoom-icon" aria-hidden="true">⤢</span>
+      </div>
     </section>
-    <section class="page">
-      <!-- <div class="page-header"><span class="page-number">Image 15</span></div> -->
-      <img src="15.jpg" alt="Image 15" loading="lazy">
+    <section class="page" data-index="15">
+      <span class="page-index">15</span>
+      <div class="img-wrap" tabindex="0" role="button" aria-label="View image 15 fullscreen">
+        <img src="15.jpg" alt="Image 15" loading="lazy">
+        <span class="zoom-icon" aria-hidden="true">⤢</span>
+      </div>
     </section>
-    <section class="page">
-      <!-- <div class="page-header"><span class="page-number">Image 16</span></div> -->
-      <img src="16.jpg" alt="Image 16" loading="lazy">
+    <section class="page" data-index="16">
+      <span class="page-index">16</span>
+      <div class="img-wrap" tabindex="0" role="button" aria-label="View image 16 fullscreen">
+        <img src="16.jpg" alt="Image 16" loading="lazy">
+        <span class="zoom-icon" aria-hidden="true">⤢</span>
+      </div>
     </section>
-    <section class="page">
-      <!-- <div class="page-header"><span class="page-number">Image 17</span></div> -->
-      <img src="17.jpg" alt="Image 17" loading="lazy">
+    <section class="page" data-index="17">
+      <span class="page-index">17</span>
+      <div class="img-wrap" tabindex="0" role="button" aria-label="View image 17 fullscreen">
+        <img src="17.jpg" alt="Image 17" loading="lazy">
+        <span class="zoom-icon" aria-hidden="true">⤢</span>
+      </div>
     </section>
-    <section class="page">
-      <!-- <div class="page-header"><span class="page-number">Image 18</span></div> -->     
-      <img src="18.jpg" alt="Image 18" loading="lazy">
+    <section class="page" data-index="18">
+      <span class="page-index">18</span>
+      <div class="img-wrap" tabindex="0" role="button" aria-label="View image 18 fullscreen">
+        <img src="18.jpg" alt="Image 18" loading="lazy">
+        <span class="zoom-icon" aria-hidden="true">⤢</span>
+      </div>
     </section>
-    <section class="page">
-      <!-- <div class="page-header"><span class="page-number">Image 19</span></div> -->
-      <img src="19.jpg" alt="Image 19" loading="lazy">
+    <section class="page" data-index="19">
+      <span class="page-index">19</span>
+      <div class="img-wrap" tabindex="0" role="button" aria-label="View image 19 fullscreen">
+        <img src="19.jpg" alt="Image 19" loading="lazy">
+        <span class="zoom-icon" aria-hidden="true">⤢</span>
+      </div>
     </section>
-    <section class="page">
-      <!-- <div class="page-header"><span class="page-number">Image 20</span></div> -->
-      <img src="20.jpg" alt="Image 20" loading="lazy">
+    <section class="page" data-index="20">
+      <span class="page-index">20</span>
+      <div class="img-wrap" tabindex="0" role="button" aria-label="View image 20 fullscreen">
+        <img src="20.jpg" alt="Image 20" loading="lazy">
+        <span class="zoom-icon" aria-hidden="true">⤢</span>
+      </div>
     </section>
-    <section class="page">
-      <!-- <div class="page-header"><span class="page-number">Image 21</span></div> -->
-      <img src="21.jpg" alt="Image 21" loading="lazy">
+    <section class="page" data-index="21">
+      <span class="page-index">21</span>
+      <div class="img-wrap" tabindex="0" role="button" aria-label="View image 21 fullscreen">
+        <img src="21.jpg" alt="Image 21" loading="lazy">
+        <span class="zoom-icon" aria-hidden="true">⤢</span>
+      </div>
     </section>
-    <section class="page">
-      <!-- <div class="page-header"><span class="page-number">Image 22</span></div> -->
-      <img src="22.jpg" alt="Image 22" loading="lazy">
+    <section class="page" data-index="22">
+      <span class="page-index">22</span>
+      <div class="img-wrap" tabindex="0" role="button" aria-label="View image 22 fullscreen">
+        <img src="22.jpg" alt="Image 22" loading="lazy">
+        <span class="zoom-icon" aria-hidden="true">⤢</span>
+      </div>
     </section>
-    <section class="page">
-      <!-- <div class="page-header"><span class="page-number">Image 23</span></div> -->
-      <img src="23.jpg" alt="Image 23" loading="lazy">
+    <section class="page" data-index="23">
+      <span class="page-index">23</span>
+      <div class="img-wrap" tabindex="0" role="button" aria-label="View image 23 fullscreen">
+        <img src="23.jpg" alt="Image 23" loading="lazy">
+        <span class="zoom-icon" aria-hidden="true">⤢</span>
+      </div>
     </section>
-    <section class="page">
-      <!-- <div class="page-header"><span class="page-number">Image 24</span></div> -->
-      <img src="24.jpg" alt="Image 24" loading="lazy">
+    <section class="page" data-index="24">
+      <span class="page-index">24</span>
+      <div class="img-wrap" tabindex="0" role="button" aria-label="View image 24 fullscreen">
+        <img src="24.jpg" alt="Image 24" loading="lazy">
+        <span class="zoom-icon" aria-hidden="true">⤢</span>
+      </div>
     </section>
-    <section class="page">
-      <!-- <div class="page-header"><span class="page-number">Image 25</span></div> -->
-      <img src="25.jpg" alt="Image 25" loading="lazy">
+    <section class="page" data-index="25">
+      <span class="page-index">25</span>
+      <div class="img-wrap" tabindex="0" role="button" aria-label="View image 25 fullscreen">
+        <img src="25.jpg" alt="Image 25" loading="lazy">
+        <span class="zoom-icon" aria-hidden="true">⤢</span>
+      </div>
     </section>
-    <section class="page">
-      <!-- <div class="page-header"><span class="page-number">Image 26</span></div> -->
-      <img src="26.jpg" alt="Image 26" loading="lazy">
+    <section class="page" data-index="26">
+      <span class="page-index">26</span>
+      <div class="img-wrap" tabindex="0" role="button" aria-label="View image 26 fullscreen">
+        <img src="26.jpg" alt="Image 26" loading="lazy">
+        <span class="zoom-icon" aria-hidden="true">⤢</span>
+      </div>
     </section>
-    <section class="page">
-      <!-- <div class="page-header"><span class="page-number">Image 27</span></div> -->
-      <img src="27.jpg" alt="Image 27" loading="lazy">
+    <section class="page" data-index="27">
+      <span class="page-index">27</span>
+      <div class="img-wrap" tabindex="0" role="button" aria-label="View image 27 fullscreen">
+        <img src="27.jpg" alt="Image 27" loading="lazy">
+        <span class="zoom-icon" aria-hidden="true">⤢</span>
+      </div>
     </section>
-    <section class="page">
-      <!-- <div class="page-header"><span class="page-number">Image 28</span></div> -->
-      <img src="28.jpg" alt="Image 28" loading="lazy">
+    <section class="page" data-index="28">
+      <span class="page-index">28</span>
+      <div class="img-wrap" tabindex="0" role="button" aria-label="View image 28 fullscreen">
+        <img src="28.jpg" alt="Image 28" loading="lazy">
+        <span class="zoom-icon" aria-hidden="true">⤢</span>
+      </div>
     </section>
   </main>
+
+  <div class="lightbox no-print" id="lightbox" role="dialog" aria-modal="true" aria-label="Fullscreen image viewer" hidden>
+    <button class="lightbox-close" id="lightboxClose" type="button" aria-label="Close">✕</button>
+    <button class="lightbox-nav lightbox-prev" id="lightboxPrev" type="button" aria-label="Previous image">‹</button>
+    <img id="lightboxImg" src="" alt="">
+    <button class="lightbox-nav lightbox-next" id="lightboxNext" type="button" aria-label="Next image">›</button>
+    <span class="lightbox-label" id="lightboxLabel"></span>
+  </div>
+
+  <script>
+    const pages = [...document.querySelectorAll(".page")];
+    const total = pages.length;
+    const progressBar = document.getElementById("progressBar");
+    const slideCounter = document.getElementById("slideCounter");
+    const lightbox = document.getElementById("lightbox");
+    const lightboxImg = document.getElementById("lightboxImg");
+    const lightboxLabel = document.getElementById("lightboxLabel");
+    let currentIndex = 0;
+
+    const pad = (n) => String(n).padStart(2, "0");
+
+    // Scroll reveal
+    const revealObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) entry.target.classList.add("in-view");
+        });
+      },
+      { threshold: 0.15, rootMargin: "0px 0px -40px 0px" }
+    );
+    pages.forEach((page) => revealObserver.observe(page));
+
+    // Active slide + progress
+    const activeObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const idx = pages.indexOf(entry.target);
+            currentIndex = idx;
+            slideCounter.textContent = `${pad(idx + 1)} / ${pad(total)}`;
+          }
+        });
+      },
+      { threshold: 0.55 }
+    );
+    pages.forEach((page) => activeObserver.observe(page));
+
+    function updateProgress() {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const pct = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+      progressBar.style.width = pct + "%";
+    }
+    window.addEventListener("scroll", updateProgress, { passive: true });
+    updateProgress();
+
+    // Lightbox
+    function openLightbox(index) {
+      currentIndex = index;
+      const page = pages[index];
+      const img = page.querySelector("img");
+      lightboxImg.src = img.src;
+      lightboxImg.alt = img.alt;
+      lightboxLabel.textContent = `Image ${page.dataset.index} — ${pad(index + 1)} of ${pad(total)}`;
+      lightbox.hidden = false;
+      requestAnimationFrame(() => lightbox.classList.add("open"));
+      document.body.style.overflow = "hidden";
+    }
+
+    function closeLightbox() {
+      lightbox.classList.remove("open");
+      document.body.style.overflow = "";
+      setTimeout(() => { lightbox.hidden = true; }, 350);
+    }
+
+    function navigateLightbox(dir) {
+      currentIndex = (currentIndex + dir + total) % total;
+      const page = pages[currentIndex];
+      const img = page.querySelector("img");
+      lightboxImg.style.opacity = "0";
+      lightboxImg.style.transform = "scale(0.95)";
+      setTimeout(() => {
+        lightboxImg.src = img.src;
+        lightboxImg.alt = img.alt;
+        lightboxLabel.textContent = `Image ${page.dataset.index} — ${pad(currentIndex + 1)} of ${pad(total)}`;
+        lightboxImg.style.opacity = "";
+        lightboxImg.style.transform = "";
+      }, 180);
+    }
+
+    pages.forEach((page, i) => {
+      const wrap = page.querySelector(".img-wrap");
+      wrap.addEventListener("click", () => openLightbox(i));
+      wrap.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          openLightbox(i);
+        }
+      });
+    });
+
+    document.getElementById("lightboxClose").addEventListener("click", closeLightbox);
+    document.getElementById("lightboxPrev").addEventListener("click", () => navigateLightbox(-1));
+    document.getElementById("lightboxNext").addEventListener("click", () => navigateLightbox(1));
+    lightbox.addEventListener("click", (e) => { if (e.target === lightbox) closeLightbox(); });
+
+    document.addEventListener("keydown", (e) => {
+      if (lightbox.hidden) return;
+      if (e.key === "Escape") closeLightbox();
+      if (e.key === "ArrowLeft") navigateLightbox(-1);
+      if (e.key === "ArrowRight") navigateLightbox(1);
+    });
+
+    document.getElementById("topBtn").addEventListener("click", () => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+    document.getElementById("printBtn").addEventListener("click", () => window.print());
+  </script>
 
 </body>
 </html>
