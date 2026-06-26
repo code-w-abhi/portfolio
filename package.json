@@ -3,7 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "bash scripts/build.sh",
+    "build": "node scripts/build.js",
     "preview": "npm run build && npx --yes serve public -p 3000"
+  },
+  "devDependencies": {
+    "sharp": "^0.34.2"
   }
 }
