@@ -1,0 +1,9 @@
+{
+  "name": "image-gallery",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "bash scripts/build.sh",
+    "preview": "npm run build && npx --yes serve public -p 3000"
+  }
+}

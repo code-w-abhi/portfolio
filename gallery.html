@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Image Gallery</title>
+  <style>
+    :root {
+      --bg: #f5f5f5;
+      --page-bg: #ffffff;
+      --text: #1a1a1a;
+      --muted: #666;
+      --accent: #2563eb;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    /* Screen toolbar */
+    .toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.875rem 1.5rem;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid #e5e5e5;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    }
+
+    .toolbar h1 {
+      font-size: 1.125rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    .toolbar-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .btn {
+      appearance: none;
+      border: none;
+      border-radius: 8px;
+      padding: 0.5rem 1rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: #1d4ed8;
+    }
+
+    .btn-secondary {
+      background: #e5e7eb;
+      color: var(--text);
+    }
+
+    .btn-secondary:hover {
+      background: #d1d5db;
+    }
+
+    /* Cover page */
+    .cover {
+      max-width: 900px;
+      margin: 3rem auto;
+      padding: 4rem 2rem;
+      text-align: center;
+      background: var(--page-bg);
+      border-radius: 12px;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+    }
+
+    .cover h2 {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.5rem;
+    }
+
+    .cover p {
+      color: var(--muted);
+      font-size: 1rem;
+    }
+
+    .cover .count {
+      margin-top: 1.5rem;
+      display: inline-block;
+      padding: 0.35rem 0.85rem;
+      background: #eff6ff;
+      color: var(--accent);
+      border-radius: 999px;
+      font-size: 0.8125rem;
+      font-weight: 600;
+    }
+
+    /* Gallery pages */
+    .gallery {
+      max-width: 900px;
+      margin: 0 auto 3rem;
+      padding: 0 1rem;
+    }
+
+    .page {
+      background: var(--page-bg);
+      border-radius: 12px;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+      margin-bottom: 2rem;
+      overflow: hidden;
+    }
+
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1.25rem;
+      border-bottom: 1px solid #f0f0f0;
+      background: #fafafa;
+    }
+
+    .page-number {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .page img {
+      display: block;
+      width: 100%;
+      height: auto;
+      max-height: 85vh;
+      object-fit: contain;
+      background: #fafafa;
+    }
+
+    /* Print / PDF styles */
+    @media print {
+      body {
+        background: #fff;
+      }
+
+      .toolbar,
+      .no-print {
+        display: none !important;
+      }
+
+      .cover {
+        margin: 0;
+        padding: 0;
+        box-shadow: none;
+        border-radius: 0;
+        page-break-after: always;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .gallery {
+        max-width: none;
+        margin: 0;
+        padding: 0;
+      }
+
+      .page {
+        margin: 0;
+        border-radius: 0;
+        box-shadow: none;
+        page-break-after: always;
+        page-break-inside: avoid;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .page-header {
+        flex-shrink: 0;
+      }
+
+      .page img {
+        flex: 1;
+        max-height: none;
+        object-fit: contain;
+      }
+
+      @page {
+        size: A4 portrait;
+        margin: 12mm;
+      }
+    }
+  </style>
+</head>
+<body>
+
+
+  <main class="gallery">
+    <section class="page">
+      
+      <img src="1.jpg" alt="Image 1" loading="lazy">
+    </section>
+    <section class="page">
+      
+      <img src="2.jpg" alt="Image 2" loading="lazy">
+    </section>
+    <section class="page">
+      <!-- <div class="page-header"><span class="page-number">Image 3</span></div> -->
+      <img src="3.jpg" alt="Image 3" loading="lazy">
+    </section>
+    <section class="page">
+      <!-- <div class="page-header"><span class="page-number">Image 4</span></div> -->
+      <img src="4.jpg" alt="Image 4" loading="lazy">
+    </section>
+    <section class="page">
+      <!-- <div class="page-header"><span class="page-number">Image 5</span></div> -->
+      <img src="5.jpg" alt="Image 5" loading="lazy">
+    </section>
+    <section class="page">
+      <!-- <div class="page-header"><span class="page-number">Image 6</span></div> -->
+      <img src="6.jpg" alt="Image 6" loading="lazy">
+    </section>
+    <section class="page">
+      <!-- <div class="page-header"><span class="page-number">Image 7</span></div> -->
+      <img src="7.jpg" alt="Image 7" loading="lazy">
+    </section>
+    <section class="page">
+      <!-- <div class="page-header"><span class="page-number">Image 8</span></div> -->
+      <img src="8.jpg" alt="Image 8" loading="lazy">
+    </section>
+    <section class="page">
+      <!-- <div class="page-header"><span class="page-number">Image 9</span></div> -->
+      <img src="9.jpg" alt="Image 9" loading="lazy">
+    </section>
+    <section class="page">
+      <!-- <div class="page-header"><span class="page-number">Image 10</span></div> -->
+      <img src="10.jpg" alt="Image 10" loading="lazy">
+    </section>
+    <section class="page">
+      <!-- <div class="page-header"><span class="page-number">Image 11</span></div> -->
+      <img src="11.jpg" alt="Image 11" loading="lazy">
+    </section>
+    <section class="page">
+      <!-- <div class="page-header"><span class="page-number">Image 12</span></div> -->
+      <img src="12.jpg" alt="Image 12" loading="lazy">
+    </section>
+    <section class="page">
+      <!-- <div class="page-header"><span class="page-number">Image 15</span></div> -->
+      <img src="15.jpg" alt="Image 15" loading="lazy">
+    </section>
+    <section class="page">
+      <!-- <div class="page-header"><span class="page-number">Image 16</span></div> -->
+      <img src="16.jpg" alt="Image 16" loading="lazy">
+    </section>
+    <section class="page">
+      <!-- <div class="page-header"><span class="page-number">Image 17</span></div> -->
+      <img src="17.jpg" alt="Image 17" loading="lazy">
+    </section>
+    <section class="page">
+      <!-- <div class="page-header"><span class="page-number">Image 18</span></div> -->     
+      <img src="18.jpg" alt="Image 18" loading="lazy">
+    </section>
+    <section class="page">
+      <!-- <div class="page-header"><span class="page-number">Image 19</span></div> -->
+      <img src="19.jpg" alt="Image 19" loading="lazy">
+    </section>
+    <section class="page">
+      <!-- <div class="page-header"><span class="page-number">Image 20</span></div> -->
+      <img src="20.jpg" alt="Image 20" loading="lazy">
+    </section>
+    <section class="page">
+      <!-- <div class="page-header"><span class="page-number">Image 21</span></div> -->
+      <img src="21.jpg" alt="Image 21" loading="lazy">
+    </section>
+    <section class="page">
+      <!-- <div class="page-header"><span class="page-number">Image 22</span></div> -->
+      <img src="22.jpg" alt="Image 22" loading="lazy">
+    </section>
+    <section class="page">
+      <!-- <div class="page-header"><span class="page-number">Image 23</span></div> -->
+      <img src="23.jpg" alt="Image 23" loading="lazy">
+    </section>
+    <section class="page">
+      <!-- <div class="page-header"><span class="page-number">Image 24</span></div> -->
+      <img src="24.jpg" alt="Image 24" loading="lazy">
+    </section>
+    <section class="page">
+      <!-- <div class="page-header"><span class="page-number">Image 25</span></div> -->
+      <img src="25.jpg" alt="Image 25" loading="lazy">
+    </section>
+    <section class="page">
+      <!-- <div class="page-header"><span class="page-number">Image 26</span></div> -->
+      <img src="26.jpg" alt="Image 26" loading="lazy">
+    </section>
+    <section class="page">
+      <!-- <div class="page-header"><span class="page-number">Image 27</span></div> -->
+      <img src="27.jpg" alt="Image 27" loading="lazy">
+    </section>
+    <section class="page">
+      <!-- <div class="page-header"><span class="page-number">Image 28</span></div> -->
+      <img src="28.jpg" alt="Image 28" loading="lazy">
+    </section>
+  </main>
+
+</body>
+</html>
