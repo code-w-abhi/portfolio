@@ -6,10 +6,11 @@ const ROOT = path.join(__dirname, "..");
 const PUBLIC = path.join(ROOT, "public");
 const IMAGES = path.join(PUBLIC, "images");
 
-const IMAGE_NUMBERS = [
-  1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 15, 16, 17, 18, 19, 20, 21, 22, 23,
-  24, 25, 26, 27, 28,
-];
+const IMAGE_NUMBERS = fs
+  .readdirSync(ROOT)
+  .filter((file) => /^\d+\.jpg$/i.test(file))
+  .map((file) => Number.parseInt(file, 10))
+  .sort((a, b) => a - b);
 
 async function build() {
   fs.mkdirSync(IMAGES, { recursive: true });
